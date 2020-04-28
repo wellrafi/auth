@@ -1,0 +1,22 @@
+POST http://localhost:5001/v1/signup
+Content-Type: application/json
+
+{
+  "username": "username1",
+  "password": "password1",
+  "name": "rafioryhan",
+  "email": "rafiroyhan@gmail.com",
+  "address": "lampung timur",
+  "postCode": "34381",
+  "phoneNumber": "087877954574",
+  "birthday": "2001-02-17"
+}
+
+###
+
+POST http://localhost:5001/v1/token
+Content-Type: application/json
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfdG9rZW4iOiJlOWFjODk2YTk3NjgzNzU1MjM4MjRmNDFiNmE2NTYwYmRkNGQ2OTgxMjBiMmZjMTAwNDIwZTQ0ZDkxMjgyY2Q0ZDE3MWNmYjIzNjQzMjQxYzVlN2M3MDhiMWIwNjZiZTIxZDIyZDRiMWZkYjFlY2I1NDU3NzhhZDM5OGQyZjNiMyIsImlhdCI6MTU4NzE1NTI2MSwiZXhwIjoxNTg5NzQ3MjYxfQ73b3fb0ecc3744f580ba341936b4ac3ec91590b23b399f6e9dc399c469574475c9babb98ec1f0bd78ec8164fbf2951dcd66c362cccc16a63a75202be2d7482f6072861a0ca785ae1bf2043f6799e6daaa712e29bf76a7bd59607d976fefb30680aeea9a97d78a1d3801bea14c2398149aa7b79cb095e78d78dda40690d17f4d2.OBPees6Nw4KlquikJAcVCvA-usIgoaEwkdvXp83jJws"
+}
