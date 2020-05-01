@@ -23,15 +23,24 @@ router.post('/', async function(req, res) {
 
   let {username, password} = req.body
 
-  let matchUsername = await models.Auth.findOne({
-    where: {
-      username: username
-    }
+  let obSearch = {}
+  if (username.indexOf('@') > 0){
+    obSearch['email'] = username 
+  } else {
+    obSearch['username'] = username
+  }
+
+
+  let matchUsername = await models.Auth.findAll({
+    where: obSearch
   })
 
-  if (!matchUsername) {
+
+  if (matchUsername.length < 1) {
     return response(res, 40401)
   }
+
+  matchUsername = matchUsername[0].get({plain: true})
 
   let matchPassword = await bcrypt.compare(password, matchUsername.password)
 

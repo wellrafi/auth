@@ -1,8 +1,9 @@
 require('dotenv').config()
 let jwt = require("jsonwebtoken");
-let {v4: uuidv4} = require('uuid');
+let { v4: uuidv4 } = require('uuid');
 let crypto = require('crypto')
 let models = require('../models/index')
+let { Op } = require('sequelize')
 
 exports.isEmpty = function (value) {
   return value === "" || value === undefined || value === null ? null : value
@@ -43,70 +44,102 @@ exports.roleId = function (role) {
   }
 }
 
-exports.uniqueAsync = async function (res, modelName, attributeName, attributeBody, except = []) {
+exports.uniqueAsync = async function (modelName, attributeName = [], attributeBody, except = []) {
+
+
   
-  // buat object kosong untuk nampung attrinute nama sama body attribute
-  // untuk clause where di model
-  let obAtt = {}
-
-  // lalu masukin nama attribute sama attribute bodynya
-  obAtt[attributeName] = attributeBody
-
-  // model untuk cari attribute udah ada belum di table
-  const response = await models[modelName].findAll({
-
-    // attribute yang dicari
-    where: obAtt
-
-  })
-
-  // -- ingat pi .get({plain: true}) hanya bisa untuk object aja
-  // -- kalo ada kasus array of object pake map terus di masing2 object kasih .get({plain: true}) ini
-  // ngubah ke object
-  let listUsername = response.map((node) => {
-    let dahJadiObject = node.get({ plain: true })
-    return dahJadiObject.username
-  });
-
-  if (except.length > 0) {
-    listUsername = listUsername.filter(function(valUsername) {
-      except.forEach(valExceptUsername => {
-        return valExceptUsername !== valUsername
-      })    
+    let whereClause = {}
+    attributeName.forEach(attNameValue => {
+      whereClause[attNameValue] = attributeBody[0][attNameValue]
     })
-  }
 
-  let count = listUsername.length
+    // console.log(whereClause)
+    // console.log(attributeBody)
+    // return
 
-  if (count === 0) {
-    return false
-  }
+    // model untuk cari attribute udah ada belum di table
+    const response = await models[modelName].findAll({
 
-  let ob = {}
-
-  // kalau ketemu attribute yang sama
-  if (count > 1 ) {
-
-    attributeBody.forEach((valueUsername, index) => {
-      ob[`${index}.${attributeName}`] = {
-        "message": `${valueUsername} already used`,
-        "rule": "unique"
+      // attribute yang dipushcari
+      where: {
+        [Op.and]: whereClause
       }
+
     })
 
-    return ob
+    // -- ingat pi .get({plain: true}) hanya bisa untuk object aja
+    // -- kalo ada kasus array of object pake map terus di masing2 object kasih .get({plain: true}) ini
+    // ngubah ke object
+    let listUsername = response.map((node) => {
+      let dahJadiObject = node.get({ plain: true })
+      return dahJadiObject.username
+    });
 
-  }
+    // except
+    // untuk remove list username 
+    if (except.length > 0) {
+      listUsername = listUsername.filter(function(valUsername) {
+        except.forEach(valExceptUsername => {
+          return valExceptUsername !== valUsername
+        })    
+      })
+    }
 
-  ob[attributeName] = {
-    "message": `${attributeBody} already used`,
-    "rule": "unique"
-  }
+    let count = listUsername.length
 
-  return ob
+    if (count === 0) {
+      return 
+    }
+
+    let ob = {}
+
+    // kalau ketemu attribute yang sama
+    if (count > 1 ) {
+
+      // attributeBody.forEach(attBodyValue => {
+      //   attributeName.forEach((attNameValue, index) => {
+      //     ob[`${index}.${attNameValue}`] = {
+      //       "message": `${attNameValue} already used`,
+      //       "rule": "unique"
+      //     }
+      //   })
+      // })
+
+      return ob
+
+    } else {
+
+      attributeName.forEach((attNameValue) => {
+        ob[`${attNameValue}`] = {
+          "message": `${attNameValue} already used`,
+          "rule": "unique"
+        }
+      })
+  
+      return ob
+      
+    }
 
 }
 
+
+exports.checkKeysObject = function(body, _listKeys) {
+  let bodyObject = body[0];
+  let bodyObjectKeys = Object.keys(bodyObject);
+  let listKeys = _listKeys;
+  let checkKeys = []
+  listKeys.forEach((valueKey) => {
+    if (bodyObjectKeys.indexOf(valueKey) === -1) {
+      let ob = {}
+      ob[valueKey] = "Data value not found"
+      checkKeys.push(ob)
+    }
+  });
+  if (checkKeys.length > 0) {
+    return {errors: checkKeys}
+  }
+  return false
+}
 
 
 exports.createImageBase64 = function(base64) {
