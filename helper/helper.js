@@ -221,10 +221,9 @@ function generateToken(dataValue, secret, refreshToken) {
                 ? jwt.sign({
                   _token: _token
                 }, secret, {expiresIn: '30d'})
-                : jwt.sign(dataValue, secret, {expiresIn: '10h'})
+                : jwt.sign(dataValue, secret, {expiresIn: '5h'})
 
     if (refreshToken) {
-      console.log("refreshToken")
       models.Token.create({
         id: null,
         token: _token,

@@ -27,26 +27,15 @@ let { response } = require('../../../../helper/response')
   
 const { v4: uuidv4 } = require('uuid');
 
-router.get('/', function(req, res) {
-  console.log("perfect coy")
-  return res.send("soasdfasdf")
-})
-
-router.post('/testing', async function(req, res, next) {
-  let match = fetchToken(req.body.token)
-  if (match === false) {
-    return response(res, 401)
-  }
-  return response(res, 200)
-})
-
 router.post('/', async function(req, res) {
 
   // _.some(req.body, _.isEmpty) === false 
   // digunakan untuk cek object yang kosong
   
-  // cek jika req.body kosong
-  if (!req.body || _.some(req.body, _.isEmpty) === false) {
+  let headers = req.headers["content-type"].toString()
+
+  // cek kalo headersnya multipart/form-data
+  if (headers.indexOf('form-data') > 0) {
 
     let form = new IncomingForm({ 
       multiples: true, 
@@ -55,15 +44,16 @@ router.post('/', async function(req, res) {
       maxFileSize: 1024 * 1024,
       maxFields: 10,
       maxFieldsSize: 4 * 1024 * 1024,
-    
     })
 
     
     form.parse(req, function (err, fields, files) {
-       
+
       storeDataSignUp(req, res, fields)
       
     })
+
+    return
 
     // form.on('fileBegin', function(name, file){
 
@@ -90,9 +80,13 @@ router.post('/', async function(req, res) {
 
     // })
 
-  } else { 
-    storeDataSignUp(req, res, req.body)
   }
+
+  if (headers.indexOf('json') > 0) {
+    storeDataSignUp(req, res, req.body)
+    return
+  }
+
 
 })
 
@@ -100,7 +94,7 @@ router.post('/', async function(req, res) {
 async function storeDataSignUp(req, res, reqBody, reqFiles) {
 
   // ngubah requets body ke array
-  let body = reqBody.length > 0 ? reqBody : [reqBody];
+  let body = fToArray(reqBody);
 
   // script ini untuk ngecek keys pada object requestnya
   const checkReqObject = checkKeysObject(body, ['username', 'email', 'password'])
@@ -202,6 +196,7 @@ async function storeDataSignUp(req, res, reqBody, reqFiles) {
   return response(res, 201)
 }
 
+const fToArray = (body) => body.length > 0 ? body : [body]
 
 module.exports = router;
 
